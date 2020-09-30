@@ -1,0 +1,90 @@
+<html>
+<head>
+    <script src="{{ url_for('static',filename='chart.js')}}"></script>
+    <script src="{{ url_for('static',filename='dayjs.min.js')}}"></script>
+    <script src="{{ url_for('static',filename='moment.min.js')}}"></script>
+    <title>{{ title  }}</title>
+</head>
+<body>
+
+    <div id="container" style="width:100%; height:400px;"></div>
+    <script>
+        data = {{ result|tojson }};
+        {#console.log(data)#}
+        product_name = data.product['product_name'];
+        prices_list = data.product['prices'];
+
+        price_array = [];
+        date_array = [];
+        result_list = [];
+
+        for(var index in prices_list){
+            price = prices_list[index]['price'];
+            modified_date = prices_list[index]['date'];
+            var miniseconds = Date.parse(modified_date)
+            result_list.push([miniseconds, price])
+        }
+
+        series = [{
+            name: product_name,
+            data: result_list
+        }]
+
+        console.log(series)
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+    Highcharts.chart('container', {
+        chart: {
+            type: 'spline',
+            zoomType: 'x',
+        },
+        title: {
+            text: 'Lịch sử giá'
+        },
+        tooltip: {
+            formatter: function () {
+                return '<div class="product">Sản phẩm: <b>' + this.series.name + '</b></div><br/>'
+                        + 'Thời gian cập nhật: <b>' + moment(this.x).format('DD-MM-YYYY hh:mm A') + '</b><br/>'
+                        + 'Giá: <b>' + this.y.toLocaleString('vi') + '₫' + '</b>'
+            }
+        },
+        xAxis: {
+            type: 'datetime',
+            labels: {
+                rotation: -25,
+                formatter: function() {
+                    console.log(moment(this.value).format('DD-MM-YYYY'))
+                    return moment(this.value).format('DD-MM-YYYY');
+                },
+            }
+        },
+        yAxis: {
+            title: {
+                text: 'Giá (vnđ)'
+            },
+            labels: {
+                style: {
+                    fontsize: 14
+                },
+                formatter: function () {
+                    return '' + this.value.toLocaleString('vi') + '₫';
+                }
+            }
+        },
+        plotOptions: {
+            spline: {
+                marker: {
+                    enabled: false
+                }
+            },
+            series: {
+                cursor: 'pointer',
+            }
+        },
+        series: series
+    });
+});
+    </script>
+</body>
+</html>
